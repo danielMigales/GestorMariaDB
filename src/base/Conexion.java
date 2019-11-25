@@ -5,7 +5,9 @@ import com.mysql.jdbc.PreparedStatement;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Scanner;
+import javax.swing.SwingUtilities;
 
 public class Conexion {
 //propiedades de la clase
@@ -15,6 +17,9 @@ public class Conexion {
     private static final String user = "root";
     private static final String password = "";
     private static final String url = "jdbc:mysql://localhost:3306/";
+
+    ArrayList<String> listaCampos = new ArrayList<String>();
+    ArrayList<String> tipoCampos = new ArrayList<String>();
 
     public Conexion() {//constructor vacio
         conexion = null;
@@ -77,8 +82,33 @@ public class Conexion {
                         eliminarTabla(nombreTabla);
 
                         String sql = "CREATE TABLE " + nombreTabla + "(id SERIAL PRIMARY KEY)";
-
                         st.executeUpdate(sql);
+
+                        System.out.println("Introduzca el numero de campos de la tabla...");
+                        int numeroCampos = teclado.nextInt();
+
+                        for (int i = 0; i < numeroCampos; i++) {
+                            int contador = 1;
+                            System.out.println("Introduzca el nombre del campo " + contador);
+                            String nombreCampo = teclado.nextLine();
+                            listaCampos.add(nombreCampo);
+                            contador++;
+                        //}
+
+                       // for (int i = 0; i < numeroCampos; i++) {
+                            System.out.println("¿Que tipo de campo desea añadir? Texto: 1 o Numerico: 2");
+                            int tipo = teclado.nextInt();
+                            if (tipo == 1) {
+                                tipoCampos.add("VARCHAR (20)");
+                            } else {
+                                tipoCampos.add("INT");
+                            }
+                        //}
+                        //for (int i = 0; i < numeroCampos; i++) {
+                            String sqlAlter = "ALTER TABLE " + nombreTabla + " ADD COLUMNS " 
+                                + listaCampos.get(i)+ " " + tipoCampos.get(i) + ";";
+                            st.executeUpdate(sqlAlter);
+                        }
                         System.out.println("Creada tabla " + nombreTabla + ".");
                     } finally {
 
