@@ -35,7 +35,7 @@ public class Main {
                     case 0:
                         salir = false;
                     case 1:
-
+                        conectar.crearTabla();
                         break;
                     case 2:
 
