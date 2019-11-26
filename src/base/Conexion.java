@@ -21,31 +21,29 @@ public class Conexion {
     ArrayList<String> listaCampos = new ArrayList<String>();
     ArrayList<String> tipoCampos = new ArrayList<String>();
 
-    Scanner tecladoStrings = new Scanner(System.in);
-    Scanner tecladoNumeros = new Scanner(System.in);
-
     public Conexion() {//constructor vacio
         conexion = null;
         try {
-
+            Scanner teclado = new Scanner(System.in);
             System.out.println("¿Desea crear una nueva base de datos?.....SI/NO");
-            String respuesta = tecladoStrings.nextLine().toUpperCase();
+            String respuesta = teclado.nextLine().toUpperCase();
             switch (respuesta) {
 
                 case "SI":
                     System.out.println("Asigne un nombre a la Base de datos...");
-                    String bd = tecladoStrings.nextLine();
+                    String bd = teclado.nextLine();
                     Class.forName(driver);
                     conexion = (Connection) DriverManager.getConnection(url, user, password);
                     PreparedStatement ps = (PreparedStatement) conexion.prepareStatement("CREATE DATABASE " + bd);
                     ps.executeUpdate();
                     ps.close();
                     System.out.println("Base de datos " + bd + " creada.");
+                    conexion = (Connection) DriverManager.getConnection(url + bd, user, password);
                     break;
 
                 case "NO":
                     System.out.println("Introduzca el nombre de la base de datos a la que conectarse.");
-                    bd = tecladoStrings.nextLine();
+                    bd = teclado.nextLine();
                     Class.forName(driver);
                     conexion = (Connection) DriverManager.getConnection(url + bd, user, password);
                     break;
@@ -70,12 +68,13 @@ public class Conexion {
         boolean salir = false;
 
         do {
+            Scanner teclado = new Scanner(System.in);
             System.out.println("¿Desea crear una nueva tabla?.....SI/NO");
-            String respuesta = tecladoStrings.nextLine().toUpperCase();
+            String respuesta = teclado.nextLine().toUpperCase();
             switch (respuesta) {
                 case "SI":
                     System.out.println("Introduzca el nombre de la tabla a crear.");
-                    nombreTabla = tecladoStrings.nextLine();
+                    nombreTabla = teclado.nextLine();
                     Statement st = null;
 
                     try {
@@ -83,37 +82,34 @@ public class Conexion {
                         System.out.println("Es necesario borrar la tabla antes de crearla.");
                         eliminarTabla(nombreTabla);
 
-                        String sql = "CREATE TABLE " + nombreTabla + "(id SERIAL PRIMARY KEY)";
+                        String sql = "CREATE TABLE " + nombreTabla + "(id SERIAL PRIMARY KEY);";
                         st.executeUpdate(sql);
 
                         System.out.println("Introduzca el numero de campos de la tabla...");
-                        int numeroCampos = tecladoNumeros.nextInt();
+                        int numeroCampos = teclado.nextInt();
 
                         for (int i = 0; i < numeroCampos; i++) {
-                            int contador = 1;
-                            System.out.println("Introduzca el nombre del campo " + contador);
-                            String nombreCampo = tecladoStrings.nextLine();
-
+                            System.out.println("Introduzca el nombre del campo.");
+                            teclado.nextLine();
+                            String nombreCampo = teclado.nextLine();
                             listaCampos.add(nombreCampo);
                             System.out.println("¿Que tipo de campo desea añadir? Texto: 1 o Numerico: 2");
-                            int tipo = tecladoNumeros.nextInt();
+                            int tipo = teclado.nextInt();
                             if (tipo == 1) {
                                 tipoCampos.add("VARCHAR (20)");
                             } else {
                                 tipoCampos.add("INT");
                             }
-                            contador++;
-                        }
-                        for (int i = 0; i < numeroCampos + 1; i++) {
                             String sqlAlter = "ALTER TABLE " + nombreTabla + " ADD COLUMN "
                                     + listaCampos.get(i) + " " + tipoCampos.get(i) + ";";
+                            System.out.println(sqlAlter);
                             st.executeUpdate(sqlAlter);
                         }
                         System.out.println("Creada tabla " + nombreTabla + ".");
 
                     } catch (SQLException ex) {
-                        JOptionPane.showMessageDialog(null, ex.getMessage());
-                        
+                        System.out.println(ex.getMessage());
+
                     } finally {
                         if (st != null) {
                             st.close();
