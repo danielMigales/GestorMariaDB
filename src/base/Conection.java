@@ -187,9 +187,10 @@ public class Conection {
         String campo = teclado.nextLine();
         System.out.println("Introduzca el nuevo valor del campo.");
         String nuevoValor = teclado.nextLine();
-        
+
         Statement st = null;
-        String sql = "UPDATE " + nombreTabla + " SET " + campo + " = " + nuevoValor + " WHERE id = " + id + ";";
+        String sql = "UPDATE " + nombreTabla + " SET " + campo + " = " + "'" + nuevoValor + "' WHERE id = " + id + ";";
+        System.out.println(sql);
         try {
             st = conection.createStatement();
             st.executeUpdate(sql);
