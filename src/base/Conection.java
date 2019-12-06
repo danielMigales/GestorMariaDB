@@ -132,46 +132,136 @@ public class Conection {
         System.out.println("Introduzca el nombre de la tabla en la cual desea insertar valores.");
         String nombreTabla = teclado.nextLine();
         getCampos(database, nombreTabla);
-        boolean camposOK = false;
-        do {
-            Statement st = null;
-            String sql = "SHOW COLUMNS FROM " + database + "." + nombreTabla + ";";
 
-            try {
-                st = conection.createStatement();
-                ResultSet rs = st.executeQuery(sql);
-                while (rs.next()) {
-                    listaCampos.add(rs.getString(1));
-                }
-            } finally {
-                if (st != null) {
-                    st.close();
-                }
-            }
-            String datosArray = "";
-            for (String elemento : listaCampos) {
-                datosArray += elemento + ", ";
-            }
-            System.out.println(quitarComa(datosArray));
-
-            System.out.println("Introduzca los valores del campo:");
-            String valor = teclado.nextLine();
-            valorCampos.add(valor);
-
-        } while (camposOK);
+        String datosArray = "";
 
         Statement st = null;
+        String sql = "SHOW COLUMNS FROM " + database + "." + nombreTabla + ";";
 
         try {
             st = conection.createStatement();
-            String sql = "INSERT INTO " + nombreTabla
-                    + "(" + listaCampos.toString() + ") values (" + valorCampos.toString() + ");";
-            st.executeUpdate(sql);
+            ResultSet rs = st.executeQuery(sql);
+            while (rs.next()) {
+                listaCampos.add(rs.getString(1));
+            }
+        } finally {
+            if (st != null) {
+                st.close();
+            }
+        }
+
+        for (String elemento : listaCampos) {
+            datosArray += elemento + ", ";
+        }
+
+        datosArray = quitarComa(datosArray);
+        System.out.println("\nIntroduzca los valores nuevos siguiendo este ejemplo: 1,'valor1','valor2',...");
+        String valores = teclado.nextLine();
+
+        try {
+            st = conection.createStatement();
+            String uno = "INSERT INTO ";
+            String dos = "(";
+            String tres = ") VALUES (";
+            String cuatro = ");";
+            String consultaSQL = uno + nombreTabla + dos + datosArray + tres + valores + cuatro;
+            System.out.println(consultaSQL);
+            st.executeUpdate(consultaSQL);
             System.out.println("Registro añadido.");
         } finally {
             if (st != null) {
                 st.close();
             }
+        }
+    }
+
+    public void editarRegistro() throws SQLException {
+
+        Scanner teclado = new Scanner(System.in);
+        Scanner tecladoInt = new Scanner(System.in);
+        System.out.println("Introduzca el nombre de la tabla a editar.");
+        String nombreTabla = teclado.nextLine();
+        System.out.println("Introduzca el id del registro que quiere editar.");
+        int id = tecladoInt.nextInt();
+        System.out.println("Introduzca el campo que quiere editar.");
+        String campo = teclado.nextLine();
+        System.out.println("Introduzca el nuevo valor del campo.");
+        String nuevoValor = teclado.nextLine();
+        
+        Statement st = null;
+        String sql = "UPDATE " + nombreTabla + " SET " + campo + " = " + nuevoValor + " WHERE id = " + id + ";";
+        try {
+            st = conection.createStatement();
+            st.executeUpdate(sql);
+            System.out.println("Registro actualizado exitosamente");
+
+        } finally {
+            if (st != null) {
+                st.close();
+            }
+        }
+    }
+
+    public void consultaDatos() throws SQLException {
+
+        Scanner teclado = new Scanner(System.in);
+        System.out.println("Introduzca el nombre de la tabla a consultar.");
+        String nombreTabla = teclado.nextLine();
+
+        String sql = "SELECT * FROM " + nombreTabla;
+        Statement st = null;
+        try {
+            st = conection.createStatement();
+            ResultSet rs = st.executeQuery(sql);
+            int resultados = 0;
+
+            while (rs.next()) {
+                System.out.println("Introduzca los nombres de los campos de la tabla.");
+                String nombreCampos = teclado.nextLine();
+                int id = rs.getInt("id");
+                String datos = rs.getString(nombreCampos);
+                System.out.println(id + datos);
+                resultados++;
+            }
+            if (resultados == 0) {
+                System.out.println("No se ha encontrado ningun resultado.");
+            }
+            rs.close();
+        } finally {
+            if (st != null) {
+                st.close();
+            }
+        }
+    }
+
+    public void borrarRegistro() throws SQLException {
+
+        Scanner teclado = new Scanner(System.in);
+        System.out.println("Introduzca el nombre de la tabla.");
+        String nombreTabla = teclado.nextLine();
+        System.out.println("Introduzca el id del registro que quiere borrar en esta tabla.");
+        int id = teclado.nextInt();
+
+        Statement st = null;
+        String sql = "DELETE FROM " + nombreTabla + " WHERE id = " + id + ";";
+        try {
+            st = conection.createStatement();
+            st.executeUpdate(sql);
+            System.out.println("El registro ha sido eliminado.");
+
+        } finally {
+            if (st != null) {
+                st.close();
+            }
+        }
+    }
+
+    public void eliminarTabla(String nombreTabla) throws SQLException {
+
+        try (Statement st = conection.createStatement()) {
+            String sql = "DROP TABLE IF EXISTS " + nombreTabla + " ";
+            st.executeUpdate(sql);
+            System.out.println("Eliminada tabla " + nombreTabla);
         }
     }
 
@@ -210,48 +300,6 @@ public class Conection {
             while (rs.next()) {
                 System.out.println(rs.getString(1) + ":" + rs.getString(2));
             }
-        } finally {
-            if (st != null) {
-                st.close();
-            }
-        }
-    }
-
-    public void eliminarTabla(String nombreTabla) throws SQLException {
-
-        try (Statement st = conection.createStatement()) {
-            String sql = "DROP TABLE IF EXISTS " + nombreTabla + " ";
-            st.executeUpdate(sql);
-            System.out.println("Eliminada tabla " + nombreTabla);
-        }
-    }
-
-    public void consultaDatos() throws SQLException {
-
-        Scanner teclado = new Scanner(System.in);
-        System.out.println("Introduzca el nombre de la tabla a consultar.");
-        String nombreTabla = teclado.nextLine();
-
-        String sql = "SELECT * FROM " + nombreTabla;
-        Statement st = null;
-        try {
-            st = conection.createStatement();
-            ResultSet rs = st.executeQuery(sql);
-
-            int nSuperGuerreros = 0;
-            while (rs.next()) {
-                int id = rs.getInt("id");
-                String nombre = rs.getString("nombre");
-                String descripcion = rs.getString("descripcion");
-                int poder = rs.getInt("poder");
-                System.out.println("ID: " + id + " Nombre: " + nombre
-                        + " Descripcion: " + descripcion + " Poder: " + poder);
-                nSuperGuerreros++;
-            }
-            if (nSuperGuerreros == 0) {
-                System.out.println("No hay superguerreros");
-            }
-            rs.close();
         } finally {
             if (st != null) {
                 st.close();
